@@ -1,6 +1,6 @@
 {
   "name": "pixelmatch",
-  "version": "6.0.0",
+  "version": "6.1.0",
   "type": "module",
   "description": "The smallest and fastest pixel-level image comparison library.",
   "main": "index.js",
@@ -11,6 +11,7 @@
     "bin/pixelmatch"
   ],
   "dependencies": {
+    "jpeg-js": "^0.4.4",
     "pngjs": "^7.0.0"
   },
   "devDependencies": {
@@ -19,6 +20,7 @@
   },
   "scripts": {
     "pretest": "eslint",
+    "lint-fix": "eslint --fix",
     "test": "node --test"
   },
   "repository": {
@@ -30,7 +32,7 @@
     "comparison",
     "diff"
   ],
-  "author": "Vladimir Agafonkin",
+  "author": ["Vladimir Agafonkin", "Giang Thanh Long"],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/mapbox/pixelmatch/issues"

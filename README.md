@@ -56,15 +56,23 @@ Compares two images, writes the output diff and returns the number of mismatched
 
 ## Command line
 
-Pixelmatch comes with a binary that works with PNG images:
+Pixelmatch comes with a binary that works with PNG | JPEG images:
 
+PNG image
 ```bash
 pixelmatch image1.png image2.png output.png 0.1
+```
+
+JPEG image
+```bash
+pixelmatch image1.jpg image2.jpg output.jpg 0.1
 ```
 
 ## Example usage
 
 ### Node.js
+
+For PNG file
 
 ```js
 import fs from 'fs';
@@ -79,6 +87,23 @@ const diff = new PNG({width, height});
 pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
 
 fs.writeFileSync('diff.png', PNG.sync.write(diff));
+```
+
+For JPEG file
+
+```js
+import fs from 'fs';
+import {decode as decodeJpeg, encode as encodeJpeg} from 'jpeg-js';
+import pixelmatch from 'pixelmatch';
+
+const img1 = decodeJpeg(fs.readFileSync('img1.jpg'));
+const img2 = decodeJpeg(fs.readFileSync('img2.jpg'));
+const {width, height} = img1;
+const diff = new PNG({width, height});
+
+pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
+
+fs.writeFileSync('diff.jpg', encodeJpeg(diff).data);
 ```
 
 ### Browsers

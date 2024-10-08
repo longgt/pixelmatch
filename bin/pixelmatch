@@ -1,39 +1,72 @@
 #!/usr/bin/env node
 
 import {PNG} from 'pngjs';
+import {decode as decodeJpeg, encode as encodeJpeg} from 'jpeg-js';
 import fs from 'fs';
 import match from '../index.js';
 
 if (process.argv.length < 4) {
-    console.log('Usage: pixelmatch image1.png image2.png [diff.png] [threshold] [includeAA]');
+    console.log(
+        'Usage: pixelmatch image1.png image2.png [diff.png] [threshold] [includeAA]'
+    );
     process.exit(64);
 }
 
-const [,, img1Path, img2Path, diffPath, threshold, includeAA] = process.argv;
+function readImageContent(filePath) {
+    const fileContent = fs.readFileSync(filePath);
+    if (/\.jpe?g$/i.test(filePath)) {
+        return decodeJpeg(fileContent);
+    }
+    return PNG.sync.read(fileContent);
+}
+
+function writeImageContent(filePath, image) {
+    if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+        fs.writeFileSync(filePath, encodeJpeg(image).data);
+    } else {
+        fs.writeFileSync(filePath, PNG.sync.write(image));
+    }
+}
+
+const [, , img1Path, img2Path, diffPath, threshold, includeAA] = process.argv;
 const options = {};
 if (threshold !== undefined) options.threshold = +threshold;
 if (includeAA !== undefined) options.includeAA = includeAA !== 'false';
 
-const img1 = PNG.sync.read(fs.readFileSync(img1Path));
-const img2 = PNG.sync.read(fs.readFileSync(img2Path));
+const img1 = readImageContent(img1Path);
+const img2 = readImageContent(img2Path);
 
-const {width, height} = img1;
+const {width: width1, height: height1} = img1;
+const {width: width2, height: height2} = img2;
+const width = Math.min(width1, width2);
+const height = Math.min(height1, height2);
 
-if (img2.width !== width || img2.height !== height) {
-    console.log(`Image dimensions do not match: ${width}x${height} vs ${img2.width}x${img2.height}`);
+if (width2 !== width1 || height2 !== height1) {
+    console.error(
+        `Image dimensions do not match: ${width1}x${height1} vs ${width2}x${height2}`
+    );
     process.exit(65);
 }
 
 const diff = diffPath ? new PNG({width, height}) : null;
 
 console.time('matched in');
-const diffs = match(img1.data, img2.data, diff ? diff.data : null, width, height, options);
+const diffs = match(
+    img1.data,
+    img2.data,
+    diff ? diff.data : null,
+    width,
+    height,
+    options
+);
 console.timeEnd('matched in');
 
 console.log(`different pixels: ${diffs}`);
-console.log(`error: ${Math.round(100 * 100 * diffs / (width * height)) / 100}%`);
+console.log(
+    `error: ${Math.round((100 * 100 * diffs) / (width * height)) / 100}%`
+);
 
 if (diff) {
-    fs.writeFileSync(diffPath, PNG.sync.write(diff));
+    writeImageContent(diffPath, diff);
 }
 process.exit(diffs ? 66 : 0);
