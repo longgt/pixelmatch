@@ -21,7 +21,7 @@ function readImageContent(filePath) {
 }
 
 function writeImageContent(filePath, image) {
-    if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+    if (/\.jpe?g$/i.test(filePath)) {
         fs.writeFileSync(filePath, encodeJpeg(image).data);
     } else {
         fs.writeFileSync(filePath, PNG.sync.write(image));
